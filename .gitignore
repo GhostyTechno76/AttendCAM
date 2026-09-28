@@ -1,0 +1,23 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.pkl
+
+# Runtime database & captures
+database/attendance.db
+database/face_encodings_cache.pkl
+database/captures/*.jpg
+!database/captures/.gitkeep
+!database/.gitkeep
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
