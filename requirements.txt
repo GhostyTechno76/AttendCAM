@@ -8,3 +8,4 @@ opencv-python==5.0.0.93
 pillow==12.3.0
 schedule==1.2.2
 setuptools==69.5.1
+pyinstaller>=6.0.0

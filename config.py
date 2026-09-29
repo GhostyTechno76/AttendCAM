@@ -2,10 +2,16 @@
 Configuration settings for Autonomous Attendance Camera System
 """
 
+import sys
 from pathlib import Path
 
 # Base Paths
-BASE_DIR = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    # Running as compiled PyInstaller executable (e.g. AttendCamBeta.exe)
+    BASE_DIR = Path(sys.executable).resolve().parent
+else:
+    BASE_DIR = Path(__file__).resolve().parent
+
 KNOWN_FACES_DIR = BASE_DIR / "known_faces"
 DATABASE_DIR = BASE_DIR / "database"
 DB_PATH = DATABASE_DIR / "attendance.db"

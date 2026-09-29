@@ -10,8 +10,12 @@ from typing import Any, Dict, List, Optional, Tuple
 import config
 
 
+_db_initialized = False
+
+
 def get_db_connection() -> sqlite3.Connection:
     """Creates and returns a connection to SQLite with row factory enabled."""
+    ensure_db()
     conn = sqlite3.connect(str(config.DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
@@ -19,7 +23,9 @@ def get_db_connection() -> sqlite3.Connection:
 
 def init_db() -> None:
     """Initializes the database schema if tables do not exist."""
-    with get_db_connection() as conn:
+    global _db_initialized
+    conn = sqlite3.connect(str(config.DB_PATH))
+    with conn:
         cursor = conn.cursor()
 
         # Students Table
@@ -70,6 +76,14 @@ def init_db() -> None:
         )
 
         conn.commit()
+    _db_initialized = True
+
+
+def ensure_db() -> None:
+    """Ensures database tables are created at least once."""
+    global _db_initialized
+    if not _db_initialized:
+        init_db()
 
 
 def register_student(student_id: str, name: str, image_path: Optional[str] = None) -> None:

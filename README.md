@@ -36,14 +36,30 @@ AttendCam/
 └── test_system.py                  # Automated test suite
 ```
 
+## Standalone Downloadable Executable (`AttendCamBeta.exe`)
+
+You can run AttendCam directly without installing Python or any dependencies:
+
+```powershell
+# Double-click or run from terminal:
+.\AttendCamBeta.exe
+```
+
+To re-build the executable at any time:
+```powershell
+.\.venv\Scripts\pyinstaller.exe AttendCamBeta.spec
+```
+
 ---
 
-## Quick Start — GUI (Recommended), yes
+## Quick Start — GUI (Recommended)
 
 Launch the main hub and access everything from one window:
 
 ```powershell
 .venv\Scripts\python.exe launcher.py
+# OR
+.\AttendCamBeta.exe
 ```
 
 ### Launcher buttons

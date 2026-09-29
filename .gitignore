@@ -13,11 +13,25 @@ __pycache__/
 database/attendance.db
 database/face_encodings_cache.pkl
 database/captures/*.jpg
+database/captures/*.jpeg
+database/captures/*.png
 !database/captures/.gitkeep
 !database/.gitkeep
+
+# Student reference photos
+known_faces/*
+!known_faces/.gitkeep
+
+# Local backups
+.test_data_backup/
 
 # IDE & OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+build/
+dist/
+*.exe

@@ -10,8 +10,12 @@ from pathlib import Path
 from tkinter import messagebox
 
 # ── Resolve paths ─────────────────────────────────────────────────────────────
-BASE = Path(__file__).resolve().parent
-PYTHON = sys.executable          # same venv interpreter that launched this GUI
+if getattr(sys, "frozen", False):
+    BASE = Path(sys.executable).resolve().parent
+    PYTHON = sys.executable
+else:
+    BASE = Path(__file__).resolve().parent
+    PYTHON = sys.executable          # same venv interpreter that launched this GUI
 
 # ── Palette ───────────────────────────────────────────────────────────────────
 BG        = "#1a1a2e"
@@ -68,7 +72,7 @@ BUTTONS = [
 class LauncherGUI:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
-        self.root.title("AttendCam — Launcher")
+        self.root.title("AttendCam Beta — Launcher")
         self.root.geometry("700x480")
         self.root.resizable(False, False)
         self.root.configure(bg=BG)
@@ -83,7 +87,7 @@ class LauncherGUI:
         hdr.pack(fill="x")
         hdr.pack_propagate(False)
 
-        tk.Label(hdr, text="🎓  AttendCam",
+        tk.Label(hdr, text="🎓  AttendCam Beta",
                  bg=ACCENT, fg=WHITE, font=("Segoe UI", 22, "bold")
                  ).pack(side="left", padx=24, pady=14)
         tk.Label(hdr, text="Autonomous Attendance Camera System",
@@ -206,24 +210,41 @@ class LauncherGUI:
         Opens a new console window so the user can see live output
         (logging, face detection results, etc.).
         """
-        script_path = BASE / script
-        if not script_path.exists():
-            messagebox.showerror("Not Found", f"Script not found:\n{script_path}")
-            return
+        if getattr(sys, "frozen", False):
+            # When running as compiled executable
+            cmd = [sys.executable]
+            if script == "main.py":
+                cmd.append("--start")
+            elif flag:
+                cmd.append(flag)
 
-        cmd = [PYTHON, str(script_path)]
-        if flag:
-            cmd.append(flag)
-
-        if sys.platform == "win32":
-            # Open in a new cmd window so logs are visible
-            subprocess.Popen(
-                ["cmd", "/k"] + cmd,
-                creationflags=subprocess.CREATE_NEW_CONSOLE,
-                cwd=str(BASE),
-            )
+            if sys.platform == "win32":
+                subprocess.Popen(
+                    ["cmd", "/k"] + cmd,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    cwd=str(BASE),
+                )
+            else:
+                subprocess.Popen(cmd, cwd=str(BASE))
         else:
-            subprocess.Popen(cmd, cwd=str(BASE))
+            script_path = BASE / script
+            if not script_path.exists():
+                messagebox.showerror("Not Found", f"Script not found:\n{script_path}")
+                return
+
+            cmd = [PYTHON, str(script_path)]
+            if flag:
+                cmd.append(flag)
+
+            if sys.platform == "win32":
+                # Open in a new cmd window so logs are visible
+                subprocess.Popen(
+                    ["cmd", "/k"] + cmd,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    cwd=str(BASE),
+                )
+            else:
+                subprocess.Popen(cmd, cwd=str(BASE))
 
         self.status_var.set(f"'{label}' launched in a new terminal window.")
 
@@ -295,6 +316,55 @@ class LauncherGUI:
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    # If launched with CLI arguments, dispatch to appropriate CLI or action handler
+    args = sys.argv[1:]
+    if args and args[0].endswith(".py"):
+        args = args[1:]
+
+    if args:
+        first_arg = args[0].lower()
+        if first_arg in ("--register-gui",):
+            import student_registration_gui
+            student_registration_gui.main()
+            return
+        elif first_arg in ("--register", "--list"):
+            import register_student
+            sys.argv = [sys.argv[0]] + args
+            register_student.main()
+            return
+        elif first_arg in ("--start", "-s"):
+            import scheduler
+            sys.argv = [sys.argv[0]] + [a for a in args if a not in ("--start", "-s")]
+            scheduler.main()
+            return
+        elif first_arg in ("--help", "-h"):
+            print("AttendCam Beta — Autonomous Attendance Camera System")
+            print("\nUsage:")
+            print("  AttendCamBeta.exe                     Launch graphical hub (default)")
+            print("  AttendCamBeta.exe --start             Run live attendance scheduler")
+            print("  AttendCamBeta.exe --capture-now       Test single camera capture & face detection")
+            print("  AttendCamBeta.exe --test              Run 6-interval test simulation")
+            print("  AttendCamBeta.exe --history           View recent attendance logs from SQLite")
+            print("  AttendCamBeta.exe --register-gui      Launch Student Registration GUI directly")
+            print("  AttendCamBeta.exe --list              List registered students")
+            print("  AttendCamBeta.exe --register ...      Register student via CLI")
+            return
+        else:
+            import scheduler
+            sys.argv = [sys.argv[0]] + args
+            scheduler.main()
+            return
+
+    # If launched without args on Windows, hide the background console window
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+            if hwnd:
+                ctypes.windll.user32.ShowWindow(hwnd, 0)
+        except Exception:
+            pass
+
     root = tk.Tk()
     LauncherGUI(root)
     root.mainloop()
