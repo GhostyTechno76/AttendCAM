@@ -38,7 +38,7 @@ AttendCam/
 
 ---
 
-## Quick Start — GUI (Recommended)
+## Quick Start — GUI (Recommended), yes
 
 Launch the main hub and access everything from one window:
 
